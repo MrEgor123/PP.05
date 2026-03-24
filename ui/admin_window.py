@@ -10,17 +10,23 @@ class AdminWindow(QtWidgets.QWidget):
         self.user_repo = UsersRepo()
 
         self.setWindowTitle(f"{APP_COMPANY_NAME} — {APP_NAME} — Администратор")
-        self.setMinimumSize(700, 450)
+        self.setMinimumSize(950, 500)
 
         self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
 
         self.table = QtWidgets.QTableWidget()
-        self.table.setColumnCount(5)
-        self.table.setRowCount(0)
-        self.table.setHorizontalHeaderLabels(
-            ["ID", "Логин", "Роль", "Попытки", "Блокировка"]
-        )
+        self.table.setColumnCount(8)
+        self.table.setHorizontalHeaderLabels([
+            "ID",
+            "Логин",
+            "Фамилия",
+            "Имя",
+            "Отчество",
+            "Роль",
+            "Попытки",
+            "Блокировка"
+        ])
         self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
@@ -62,19 +68,20 @@ class AdminWindow(QtWidgets.QWidget):
         self.table.setRowCount(len(rows))
 
         for i, row in enumerate(rows):
-            user_id, login, role, login_attempts, is_blocked = row
+            user_id, login, last_name, first_name, middle_name, role_name, login_attempts, is_blocked = row
             self.table.setItem(i, 0, QtWidgets.QTableWidgetItem(str(user_id)))
             self.table.setItem(i, 1, QtWidgets.QTableWidgetItem(login))
-            self.table.setItem(i, 2, QtWidgets.QTableWidgetItem(role))
-            self.table.setItem(i, 3, QtWidgets.QTableWidgetItem(str(login_attempts)))
-            self.table.setItem(i, 4, QtWidgets.QTableWidgetItem("Да" if is_blocked else "Нет"))
+            self.table.setItem(i, 2, QtWidgets.QTableWidgetItem(last_name or ""))
+            self.table.setItem(i, 3, QtWidgets.QTableWidgetItem(first_name or ""))
+            self.table.setItem(i, 4, QtWidgets.QTableWidgetItem(middle_name or ""))
+            self.table.setItem(i, 5, QtWidgets.QTableWidgetItem(role_name))
+            self.table.setItem(i, 6, QtWidgets.QTableWidgetItem(str(login_attempts)))
+            self.table.setItem(i, 7, QtWidgets.QTableWidgetItem("Да" if is_blocked else "Нет"))
 
     def get_selected_user_id(self):
         row = self.table.currentRow()
-
         if row == -1:
             return None
-
         return int(self.table.item(row, 0).text())
 
     def unblock_user(self):
@@ -102,35 +109,34 @@ class AdminWindow(QtWidgets.QWidget):
         self.load_users()
 
     def add_user(self):
-        login, ok = QtWidgets.QInputDialog.getText(
-            self,
-            "Добавить пользователя",
-            "Логин:"
-        )
-
+        login, ok = QtWidgets.QInputDialog.getText(self, "Добавить пользователя", "Логин:")
         if not ok:
             return
-
         login = login.strip()
-
         if login == "":
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Логин не может быть пустым")
             return
 
-        password, ok = QtWidgets.QInputDialog.getText(
-            self,
-            "Добавить пользователя",
-            "Пароль:"
-        )
-
+        password, ok = QtWidgets.QInputDialog.getText(self, "Добавить пользователя", "Пароль:")
         if not ok:
             return
-
         if password == "":
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Пароль не может быть пустым")
             return
 
-        role, ok = QtWidgets.QInputDialog.getItem(
+        last_name, ok = QtWidgets.QInputDialog.getText(self, "Добавить пользователя", "Фамилия:")
+        if not ok:
+            return
+
+        first_name, ok = QtWidgets.QInputDialog.getText(self, "Добавить пользователя", "Имя:")
+        if not ok:
+            return
+
+        middle_name, ok = QtWidgets.QInputDialog.getText(self, "Добавить пользователя", "Отчество:")
+        if not ok:
+            return
+
+        role_name, ok = QtWidgets.QInputDialog.getItem(
             self,
             "Добавить пользователя",
             "Роль:",
@@ -138,25 +144,31 @@ class AdminWindow(QtWidgets.QWidget):
             0,
             False
         )
-
         if not ok:
             return
 
         try:
-            if self.user_repo.get_by_login(login) is not None:
-                QtWidgets.QMessageBox.warning(
-                    self,
-                    "Ошибка",
-                    "Пользователь с указанным логином уже существует"
-                )
-                return
-
-            self.user_repo.add_user(login, password, role)
+            created = self.user_repo.create_user(
+                login,
+                password,
+                role_name,
+                last_name.strip(),
+                first_name.strip(),
+                middle_name.strip()
+            )
         except Exception as error:
             QtWidgets.QMessageBox.critical(
                 self,
                 "Ошибка",
                 f"Ошибка добавления пользователя.\n\n{error}"
+            )
+            return
+
+        if not created:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Ошибка",
+                "Пользователь с указанным логином уже существует"
             )
             return
 
@@ -174,17 +186,10 @@ class AdminWindow(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Выберите пользователя")
             return
 
-        login, ok = QtWidgets.QInputDialog.getText(
-            self,
-            "Изменить пользователя",
-            "Логин:"
-        )
-
+        login, ok = QtWidgets.QInputDialog.getText(self, "Изменить пользователя", "Логин:")
         if not ok:
             return
-
         login = login.strip()
-
         if login == "":
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Логин не может быть пустым")
             return
@@ -192,17 +197,24 @@ class AdminWindow(QtWidgets.QWidget):
         password, ok = QtWidgets.QInputDialog.getText(
             self,
             "Изменить пользователя",
-            "Пароль:"
+            "Пароль (можно оставить пустым, чтобы не менять):"
         )
-
         if not ok:
             return
 
-        if password == "":
-            QtWidgets.QMessageBox.warning(self, "Ошибка", "Пароль не может быть пустым")
+        last_name, ok = QtWidgets.QInputDialog.getText(self, "Изменить пользователя", "Фамилия:")
+        if not ok:
             return
 
-        role, ok = QtWidgets.QInputDialog.getItem(
+        first_name, ok = QtWidgets.QInputDialog.getText(self, "Изменить пользователя", "Имя:")
+        if not ok:
+            return
+
+        middle_name, ok = QtWidgets.QInputDialog.getText(self, "Изменить пользователя", "Отчество:")
+        if not ok:
+            return
+
+        role_name, ok = QtWidgets.QInputDialog.getItem(
             self,
             "Изменить пользователя",
             "Роль:",
@@ -210,17 +222,32 @@ class AdminWindow(QtWidgets.QWidget):
             0,
             False
         )
-
         if not ok:
             return
 
         try:
-            self.user_repo.update_user(user_id, login, password, role)
+            updated = self.user_repo.update_user(
+                user_id,
+                login,
+                role_name,
+                password,
+                last_name.strip(),
+                first_name.strip(),
+                middle_name.strip()
+            )
         except Exception as error:
             QtWidgets.QMessageBox.critical(
                 self,
                 "Ошибка",
                 f"Ошибка изменения пользователя.\n\n{error}"
+            )
+            return
+
+        if not updated:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Ошибка",
+                "Пользователь с указанным логином уже существует"
             )
             return
 

@@ -39,9 +39,6 @@ class LoginWindow(QtWidgets.QWidget):
         self.login_button.clicked.connect(self.login_user)
         self.main_layout.addWidget(self.login_button)
 
-        self.login_edit.setTabOrder(self.login_edit, self.password_edit)
-        self.password_edit.setTabOrder(self.password_edit, self.login_button)
-
     def login_user(self):
         login = self.login_edit.text().strip()
         password = self.password_edit.text()
@@ -74,7 +71,17 @@ class LoginWindow(QtWidgets.QWidget):
             self.puzzle_widget.shuffle()
             return
 
-        user_id, db_login, db_password, role, login_attempts, is_blocked = user
+        (
+            user_id,
+            db_login,
+            db_password,
+            login_attempts,
+            is_blocked,
+            role_name,
+            last_name,
+            first_name,
+            middle_name
+        ) = user
 
         if is_blocked:
             QtWidgets.QMessageBox.warning(
@@ -141,10 +148,14 @@ class LoginWindow(QtWidgets.QWidget):
             "Вы успешно авторизовались"
         )
 
-        if role == "admin":
+        full_name = " ".join(
+            part for part in [last_name, first_name, middle_name] if part
+        ).strip()
+
+        if role_name == "admin":
             self.next_window = AdminWindow()
         else:
-            self.next_window = UserWindow(login)
+            self.next_window = UserWindow(login, full_name)
 
         self.next_window.show()
         self.close()
