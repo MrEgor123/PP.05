@@ -1,10 +1,17 @@
--- Импорт данных из файла Заказчики.json
+DROP TABLE IF EXISTS import_counterparties_raw;
 
 CREATE TEMP TABLE import_counterparties_raw (
     line text
 );
 
-\copy import_counterparties_raw(line) FROM '/Users/mvideomvideo/Desktop/ПП.05 Задание №1/doc/Заказчики.json' WITH (FORMAT csv, DELIMITER E'\x1f', QUOTE E'\x1e', ESCAPE E'\x1d')
+\copy import_counterparties_raw(line)
+FROM '/Users/mvideomvideo/Desktop/ПП.05/doc/Заказчики.json'
+WITH (
+    FORMAT csv,
+    DELIMITER E'\x1f',
+    QUOTE E'\x1e',
+    ESCAPE E'\x1d'
+);
 
 WITH src AS (
     SELECT string_agg(line, E'\n')::jsonb AS doc
@@ -36,4 +43,5 @@ LATERAL jsonb_to_recordset(src.doc) AS x(
     phone text,
     salesman boolean,
     buyer boolean
-);
+)
+ON CONFLICT (counterparty_id) DO NOTHING;
