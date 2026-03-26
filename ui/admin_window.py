@@ -127,13 +127,24 @@ class AdminWindow(QtWidgets.QWidget):
         last_name, ok = QtWidgets.QInputDialog.getText(self, "Добавить пользователя", "Фамилия:")
         if not ok:
             return
+        last_name = last_name.strip()
 
         first_name, ok = QtWidgets.QInputDialog.getText(self, "Добавить пользователя", "Имя:")
         if not ok:
             return
+        first_name = first_name.strip()
 
         middle_name, ok = QtWidgets.QInputDialog.getText(self, "Добавить пользователя", "Отчество:")
         if not ok:
+            return
+        middle_name = middle_name.strip()
+
+        if last_name == "" or first_name == "" or middle_name == "":
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Ошибка",
+                "Фамилия, имя и отчество обязательны для заполнения"
+            )
             return
 
         role_name, ok = QtWidgets.QInputDialog.getItem(
@@ -152,9 +163,9 @@ class AdminWindow(QtWidgets.QWidget):
                 login,
                 password,
                 role_name,
-                last_name.strip(),
-                first_name.strip(),
-                middle_name.strip()
+                last_name,
+                first_name,
+                middle_name
             )
         except Exception as error:
             QtWidgets.QMessageBox.critical(
@@ -205,13 +216,24 @@ class AdminWindow(QtWidgets.QWidget):
         last_name, ok = QtWidgets.QInputDialog.getText(self, "Изменить пользователя", "Фамилия:")
         if not ok:
             return
+        last_name = last_name.strip()
 
         first_name, ok = QtWidgets.QInputDialog.getText(self, "Изменить пользователя", "Имя:")
         if not ok:
             return
+        first_name = first_name.strip()
 
         middle_name, ok = QtWidgets.QInputDialog.getText(self, "Изменить пользователя", "Отчество:")
         if not ok:
+            return
+        middle_name = middle_name.strip()
+
+        if last_name == "" or first_name == "" or middle_name == "":
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Ошибка",
+                "Фамилия, имя и отчество обязательны для заполнения"
+            )
             return
 
         role_name, ok = QtWidgets.QInputDialog.getItem(
@@ -231,9 +253,9 @@ class AdminWindow(QtWidgets.QWidget):
                 login,
                 role_name,
                 password,
-                last_name.strip(),
-                first_name.strip(),
-                middle_name.strip()
+                last_name,
+                first_name,
+                middle_name
             )
         except Exception as error:
             QtWidgets.QMessageBox.critical(

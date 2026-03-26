@@ -94,7 +94,8 @@ class LoginWindow(QtWidgets.QWidget):
 
         if not self.puzzle_widget.is_solved():
             try:
-                self.user_repo.fail(user_id)
+                if role_name != "admin":
+                    self.user_repo.fail(user_id)
             except Exception as error:
                 QtWidgets.QMessageBox.critical(
                     self,
@@ -114,7 +115,8 @@ class LoginWindow(QtWidgets.QWidget):
 
         if password != db_password:
             try:
-                self.user_repo.fail(user_id)
+                if role_name != "admin":
+                    self.user_repo.fail(user_id)
             except Exception as error:
                 QtWidgets.QMessageBox.critical(
                     self,

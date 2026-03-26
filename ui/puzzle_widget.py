@@ -33,9 +33,17 @@ class PuzzleWidget(QWidget):
 
         self.shuffle()
 
+    def count_correct_positions(self):
+        return sum(1 for i, piece in enumerate(self.current) if piece == self.correct[i])
+
     def shuffle(self):
         self.current = self.correct.copy()
-        shuffle(self.current)
+
+        while True:
+            shuffle(self.current)
+            if self.current != self.correct and self.count_correct_positions() <= 1:
+                break
+
         self.first = None
         self.draw()
 
