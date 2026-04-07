@@ -8,6 +8,7 @@ class AdminWindow(QtWidgets.QWidget):
         super().__init__()
 
         self.user_repo = UsersRepo()
+        self.login_window = None
 
         self.setWindowTitle(f"{APP_COMPANY_NAME} — {APP_NAME} — Администратор")
         self.setMinimumSize(950, 500)
@@ -51,6 +52,10 @@ class AdminWindow(QtWidgets.QWidget):
         self.update_button = QtWidgets.QPushButton("Обновить")
         self.update_button.clicked.connect(self.load_users)
         self.buttons_layout.addWidget(self.update_button)
+
+        self.logout_button = QtWidgets.QPushButton("Выход из учетной записи")
+        self.logout_button.clicked.connect(self.logout)
+        self.buttons_layout.addWidget(self.logout_button)
 
         self.load_users()
 
@@ -279,3 +284,10 @@ class AdminWindow(QtWidgets.QWidget):
             "Данные пользователя успешно изменены"
         )
         self.load_users()
+
+    def logout(self):
+        from ui.login_window import LoginWindow
+
+        self.login_window = LoginWindow()
+        self.login_window.show()
+        self.close()
